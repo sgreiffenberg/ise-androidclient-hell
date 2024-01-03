@@ -30,12 +30,11 @@ class ServerRestAPIListener(private val viewModel: RailroadViewModel) : Callback
     }
 
     override fun onResponse(call: Call, response: Response) {
-        val uiState = viewModel.railroadUiState
         try {
             val responseBody = response.body?.string()
 
             if (responseBody == null) {
-                uiState.value = RailroadUiState.Error
+                viewModel.railroadUiState.value = RailroadUiState.Error
                 return
             }
 
@@ -49,17 +48,18 @@ class ServerRestAPIListener(private val viewModel: RailroadViewModel) : Callback
                     .url(server.url)
                     .build()
 
-                viewModel.webSockets[server] =
-                    viewModel.webSocketClient.newWebSocket(
-                        request,
-                        LocomotiveWebSocketListener(viewModel, server)
-                    )
+                viewModel.webSocketClient.newWebSocket(
+                    request,
+                    LocomotiveWebSocketListener(viewModel, server)
+                )
             }
-            viewModel.railroadUiState.value = RailroadUiState.Success(listResult)
 
             if (listResult.isNotEmpty()) {
-                viewModel.selectedServer.value = listResult.first()
+                viewModel.railroadUiState.value = RailroadUiState.Success(listResult, MutableStateFlow(listResult.first()))
                 Log.d(TAG, "select server ${listResult.first().name}")
+            } else {
+                Log.e(TAG, "No servers found")
+                viewModel.railroadUiState.value = RailroadUiState.Error
             }
 
         } catch (t: Throwable) {

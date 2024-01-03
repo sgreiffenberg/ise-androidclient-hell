@@ -12,7 +12,7 @@ import de.ba.railroad.railroadclient.model.RailroadViewModel
 
 /**
  * Shows all railroad components.
- * The contents depends on the RailroadUiState
+ * The contents depends on the RailroadUiState,
  *
  * @author Steffen Greiffenberg
  */

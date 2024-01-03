@@ -14,7 +14,6 @@ import androidx.compose.ui.unit.dp
 import de.ba.railroad.railroadclient.model.Direction
 import de.ba.railroad.railroadclient.model.Locomotive
 import de.ba.railroad.railroadclient.model.RailroadViewModel
-import de.ba.railroad.railroadclient.model.Server
 import kotlin.math.abs
 
 /**
@@ -27,37 +26,56 @@ import kotlin.math.abs
 @OptIn(ExperimentalMaterial3Api::class)
 fun SpeedChips(
     locomotive: Locomotive,
-    railroadViewModel: RailroadViewModel,
-    server: Server
+    railroadViewModel: RailroadViewModel
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
-        val speed = locomotive.speed
-        val direction = locomotive.direction
-
         Text(text = "Speed: ")
 
         val step = 64
-        for (speedStep in -256..256 step step) {
+        val minSpeed = -256
+        val maxSpeed = 256
+
+        for (speedStep in minSpeed..maxSpeed step step) {
             FilterChip(
                 onClick = {
-                    locomotive.speed = abs(speedStep)
-                    locomotive.direction = if (speedStep < 0) {
-                        Direction.DIRECTION_BACKWARD
-                    } else {
-                        Direction.DIRECTION_FORWARD
-                    }
-                    railroadViewModel.send(locomotive, server)
+                    updateLocomotiveSpeed(locomotive, speedStep)
+                    railroadViewModel.send(locomotive)
                 },
-                label = {
-                    Text("")
-                },
-
-                selected = speed <= abs(speedStep) && speed > abs(speedStep) - step &&
-                        ((direction == Direction.DIRECTION_BACKWARD && speedStep < 0) ||
-                                (direction == Direction.DIRECTION_FORWARD && speedStep >= 0)),
-                modifier = Modifier.width(24.dp).padding(2.dp).height((24.0 + (abs(speedStep) / 256.0 * 16.0)).dp)
-
+                label = { Text("") },
+                selected = isSelectedSpeed(locomotive.speed, locomotive.direction, speedStep, step),
+                modifier = Modifier.getChipModifier(speedStep)
             )
         }
     }
+}
+
+/**
+ * calculate the size of each chip for speed setting. Larger speed -> larger chip.
+ */
+private fun Modifier.getChipModifier(speedStep: Int): Modifier {
+    val baseSize = 24.dp
+    val dynamicSize = (baseSize.value + (abs(speedStep) / 256.0 * 16.0)).dp
+    return this
+        .width(baseSize)
+        .padding(2.dp)
+        .height(dynamicSize)
+}
+
+/**
+ * translate the speed (-256..256) into speed (0..256) and direction (forward..backward)
+ */
+private fun updateLocomotiveSpeed(locomotive: Locomotive, speedStep: Int) {
+    locomotive.speed = abs(speedStep)
+    locomotive.direction =
+        if (speedStep < 0) Direction.DIRECTION_BACKWARD else Direction.DIRECTION_FORWARD
+}
+
+/**
+ * Is the speed chip selected? This depends on the current locomotive speed and the
+ * speed steps between all chips.
+ */
+private fun isSelectedSpeed(speed: Int, direction: Direction, speedStep: Int, step: Int): Boolean {
+    return speed <= abs(speedStep) && speed > abs(speedStep) - step &&
+            ((direction == Direction.DIRECTION_BACKWARD && speedStep < 0) ||
+                    (direction == Direction.DIRECTION_FORWARD && speedStep >= 0))
 }

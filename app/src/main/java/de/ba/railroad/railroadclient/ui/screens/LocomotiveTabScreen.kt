@@ -19,7 +19,9 @@ import de.ba.railroad.railroadclient.ui.screens.RailroadUiState
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import de.ba.railroad.railroadclient.model.Server
 import de.ba.railroad.railroadclient.ui.screens.LocomotiveScreen
+import kotlin.math.max
 
 /**
  * Screen to display all available locomotives as TabRow.
@@ -28,66 +30,65 @@ import de.ba.railroad.railroadclient.ui.screens.LocomotiveScreen
  * @author Steffen Greiffenberg
  */
 @Composable
-fun LocomotiveTabScreen(modifier:Modifier = Modifier) {
-
+fun LocomotiveTabScreen(modifier: Modifier = Modifier) {
     val viewModel: RailroadViewModel = viewModel()
-    val railroadUiState = viewModel.railroadUiState.collectAsStateWithLifecycle().value
-    val server = viewModel.selectedServer.collectAsStateWithLifecycle().value
+    val railRoadState = viewModel.railroadUiState.collectAsStateWithLifecycle().value
 
-    if (railroadUiState !is RailroadUiState.Success) {
-        Text("No connection")
+    if (railRoadState !is RailroadUiState.Success) {
+        Text(text = "No locomotive!")
         return
     }
-    val servers = railroadUiState.servers
+
+    val server = railRoadState.selected.collectAsStateWithLifecycle().value
+    val servers = railRoadState.servers
+    val selectedTabIndex = max(servers.indexOf(server), 0)
 
     Column(modifier = modifier) {
-
-        var selectedTabIndex = servers.indexOf(server)
-
-        if (selectedTabIndex < 0 && servers.size > 0) {
-            selectedTabIndex = 0
+        LocomotiveTabs(servers, selectedTabIndex, server) {
+            railRoadState.selected.value = it
         }
 
-        TabRow(selectedTabIndex = selectedTabIndex) {
-            servers.forEach {
-                Tab(text = { Text(it.name) },
-                    selected = server == it,
-                    onClick = { viewModel.selectedServer.value = it }
-                )
-            }
+        val locomotiveUiState =
+            viewModel.locomotiveUiStates[server]?.collectAsStateWithLifecycle()?.value
+
+        LocomotiveUiStateScreen(locomotiveUiState, Modifier.padding(16.dp))
+    }
+}
+
+/**
+ * The tabs for the screen. Each locomotive has it own tab.
+ */
+@Composable
+private fun LocomotiveTabs(servers: List<Server>, selectedTabIndex: Int, currentServer: Server, onTabSelected: (Server) -> Unit) {
+    TabRow(selectedTabIndex = selectedTabIndex) {
+        servers.forEach { server ->
+            Tab(
+                text = { Text(server.name) },
+                selected = currentServer == server,
+                onClick = { onTabSelected(server) }
+            )
         }
+    }
+}
 
-        val locomotiveUiState = viewModel.locomotiveUiStates[server]?.collectAsStateWithLifecycle()?.value
-
-        Column(
-            // modifier = Modifier.fillMaxSize(),
-            modifier = Modifier.padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            when (locomotiveUiState) {
-                is LocomotiveUiState.Success -> LocomotiveScreen()
-
-                is LocomotiveUiState.Connecting -> LoadingScreen(modifier = Modifier.fillMaxSize())
-                is LocomotiveUiState.Connected -> LoadingScreen(modifier = Modifier.fillMaxSize())
-
-                is LocomotiveUiState.Error -> ErrorScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    text = "Error connecting locomotive server!"
-                )
-
-                is LocomotiveUiState.Closing -> ErrorScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    text = "Closing server connection!"
-                )
-
-                is LocomotiveUiState.Closed -> ErrorScreen(
-                    modifier = Modifier.fillMaxSize(),
-                    text = "Connection to locomotive server closed!"
-                )
-
-                else -> ErrorScreen(modifier = Modifier.fillMaxSize(), text = "Unknown state")
-            }
+/**
+ * When a locomotive is selected in the LocomotiveTabs, it will be displayed
+ * with this Composable.
+ */
+@Composable
+private fun LocomotiveUiStateScreen(state: LocomotiveUiState?, modifier: Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        when (state) {
+            is LocomotiveUiState.Success -> LocomotiveScreen()
+            is LocomotiveUiState.Connecting, is LocomotiveUiState.Connected ->
+                LoadingScreen(modifier = Modifier.fillMaxSize())
+            is LocomotiveUiState.Error, is LocomotiveUiState.Closing, is LocomotiveUiState.Closed ->
+                ErrorScreen(modifier = Modifier.fillMaxSize(), text = "Error")
+            else -> ErrorScreen(modifier = Modifier.fillMaxSize(), text = "Unknown state")
         }
     }
 }

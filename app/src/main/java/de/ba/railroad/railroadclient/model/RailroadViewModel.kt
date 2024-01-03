@@ -13,12 +13,13 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import okhttp3.WebSocket
 import java.util.concurrent.TimeUnit
 
 /**
  * ViewModel of the App.
  * Holds all LocomotiveWebSocketListeners and UIStates.
+ * Uses multiple MutableStateFlow objects. JetPack Compose components should
+ * listen for their changes using collectAsStateWithLifecycle().
  *
  * @author Steffen Greiffenberg
  */
@@ -29,9 +30,6 @@ class RailroadViewModel : ViewModel() {
         .newBuilder()
         .pingInterval(10, TimeUnit.SECONDS)
         .build()
-
-    /** Map of all open webSockets */
-    var webSockets = mutableMapOf<Server, WebSocket>()
 
     /** The mutable State that stores the status of the most recent locomotive requests */
     var locomotiveUiStates = mutableMapOf<Server, MutableStateFlow<LocomotiveUiState>>()
@@ -46,7 +44,8 @@ class RailroadViewModel : ViewModel() {
         videoURL = "http://127.0.0.1/"
     )
 
-    var selectedServer = MutableStateFlow(defaultServer)
+    /** currently selected server in the LocomotiveTabScreen */
+    // var selectedServer = MutableStateFlow(defaultServer)
 
     init {
         railroadUiState.value = RailroadUiState.Loading
@@ -63,9 +62,17 @@ class RailroadViewModel : ViewModel() {
     }
 
     /** send locomotive via WebSocket */
-    fun send(locomotive: Locomotive, server: Server) {
-        val encodedLocomotive = Json.encodeToString(locomotive)
-        webSockets[server]?.send(encodedLocomotive)
+    fun send(locomotive: Locomotive) {
+        // find locomotive in UIStates
+        locomotiveUiStates.values
+            .filter {
+                val state = it.value
+                state is LocomotiveUiState.Success && state.locomotive.value.id == locomotive.id
+            }
+            .forEach {
+                // use webSocket to send the locomotive
+                (it.value as LocomotiveUiState.Success).webSocket.send(
+                    Json.encodeToString(locomotive))
+            }
     }
-
 }

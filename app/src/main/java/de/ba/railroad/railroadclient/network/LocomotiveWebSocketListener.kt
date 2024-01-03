@@ -38,8 +38,7 @@ class LocomotiveWebSocketListener(
 
         val locomotive = Json.decodeFromString<Locomotive>(text)
         viewModel.locomotiveUiStates[server]?.value =
-            LocomotiveUiState.Success(locomotive = MutableStateFlow(locomotive))
-
+            LocomotiveUiState.Success(locomotive = MutableStateFlow(locomotive), webSocket = webSocket)
 
         Log.d(TAG, "onMessage (${server.name}): $text")
     }
