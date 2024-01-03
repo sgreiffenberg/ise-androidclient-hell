@@ -1,19 +1,16 @@
 package de.ba.railroad.railroadclient.network
 
 import android.util.Log
-import androidx.lifecycle.viewModelScope
 import de.ba.railroad.railroadclient.model.Server
 import de.ba.railroad.railroadclient.ui.screens.LocomotiveUiState
 import de.ba.railroad.railroadclient.ui.screens.RailroadUiState
 import de.ba.railroad.railroadclient.model.RailroadViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.json.Json
 import okhttp3.Call
 import okhttp3.Callback
 import okhttp3.Request
 import okhttp3.Response
-import retrofit2.HttpException
 import java.io.IOException
 
 /**
@@ -65,13 +62,10 @@ class ServerRestAPIListener(private val viewModel: RailroadViewModel) : Callback
                 Log.d(TAG, "select server ${listResult.first().name}")
             }
 
-        } catch (e: IOException) {
-            Log.e(TAG, "IOException", e)
+        } catch (t: Throwable) {
+            Log.e(TAG, "Exception", t)
             viewModel.railroadUiState.value = RailroadUiState.Error
             RailroadUiState.Error
-        } catch (e: HttpException) {
-            Log.e(TAG, "HttpException", e)
-            viewModel.railroadUiState.value = RailroadUiState.Error
         }
     }
 }
