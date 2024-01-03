@@ -8,9 +8,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.viewmodel.compose.viewModel
+import de.ba.railroad.railroadclient.model.Direction
 import de.ba.railroad.railroadclient.model.Locomotive
-import de.ba.railroad.railroadclient.model.RailroadViewModel
 
 /**
  * Screen to display one locomotive
@@ -18,30 +17,20 @@ import de.ba.railroad.railroadclient.model.RailroadViewModel
  * @author Steffen Greiffenberg
  */
 @Composable
-fun LocomotiveScreen() {
-    val viewModel: RailroadViewModel = viewModel()
-    val railroadUiState = viewModel.railroadUiState.collectAsStateWithLifecycle().value
-
-    when (railroadUiState) {
-        is RailroadUiState.Success -> {
-            val server = railroadUiState.selected.collectAsStateWithLifecycle().value
-            val locomotiveUiState = viewModel.locomotiveUiStates[server]?.collectAsStateWithLifecycle()?.value
-
-            if (locomotiveUiState is LocomotiveUiState.Success) {
-                LocomotiveContent(
-                    locomotiveUiState.locomotive.collectAsStateWithLifecycle().value,
-                    viewModel
-                )
-            } else {
-                Text(text = "No connection to locomotive server!")
-            }
-        }
-        else -> Text(text = "No connection to railroad server!")
-    }
+fun LocomotiveScreen(
+    locomotiveUiState: LocomotiveUiState.Success,
+    onLocomotiveChange: (Locomotive) -> Unit
+) {
+    LocomotiveContent(
+        locomotiveUiState.locomotive.collectAsStateWithLifecycle().value,
+        onLocomotiveChange)
 }
 
 @Composable
-private fun LocomotiveContent(locomotive: Locomotive, viewModel: RailroadViewModel) {
+private fun LocomotiveContent(
+    locomotive: Locomotive,
+    onLocomotiveChange: (Locomotive) -> Unit
+) {
     Column {
         Text(text = locomotive.name)
         Text(text = locomotive.number.toString())
@@ -49,25 +38,29 @@ private fun LocomotiveContent(locomotive: Locomotive, viewModel: RailroadViewMod
 
         LocomotiveFeatureCheckbox("Cabin Lighting", locomotive.isCabinLighting) {
             locomotive.isCabinLighting = it
-            viewModel.send(locomotive)
+            onLocomotiveChange(locomotive)
         }
 
         LocomotiveFeatureCheckbox("Head Light", locomotive.isHeadLight) {
             locomotive.isHeadLight = it
-            viewModel.send(locomotive)
+            onLocomotiveChange(locomotive)
         }
 
         LocomotiveFeatureCheckbox("Smoking", locomotive.isSmoking) {
             locomotive.isSmoking = it
-            viewModel.send(locomotive)
+            onLocomotiveChange(locomotive)
         }
 
-        SpeedChips(locomotive, viewModel)
+        SpeedChips(locomotive, onLocomotiveChange)
     }
 }
 
 @Composable
-private fun LocomotiveFeatureCheckbox(text: String, checked: Boolean?, onCheckedChange: (Boolean) -> Unit) {
+private fun LocomotiveFeatureCheckbox(
+    text: String,
+    checked: Boolean?,
+    onCheckedChange: (Boolean) -> Unit
+) {
     checked?.let {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Checkbox(checked = it, onCheckedChange = onCheckedChange)
@@ -80,5 +73,15 @@ private fun LocomotiveFeatureCheckbox(text: String, checked: Boolean?, onChecked
 @Preview(showBackground = true)
 @Composable
 fun LocomotiveScreenPreview() {
-    LocomotiveScreen()
+    LocomotiveContent(
+        Locomotive(
+            name = "Rapunzel",
+            isSmoking = true,
+            isHeadLight = false,
+            isHornSound = false,
+            speed = 10,
+            direction = Direction.DIRECTION_FORWARD,
+            id = "0815"
+        )
+    ) { /* do nothing on locomotive change */ }
 }

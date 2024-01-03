@@ -18,7 +18,6 @@ import de.ba.railroad.railroadclient.ui.theme.VerySimpleRailroadClientTheme
  */
 @Composable
 fun LoadingScreen(modifier: Modifier = Modifier) {
-
     Image(
         modifier = modifier.size(200.dp),
         painter = painterResource(R.drawable.loading_img),

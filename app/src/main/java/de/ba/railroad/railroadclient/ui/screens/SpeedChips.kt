@@ -10,6 +10,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import de.ba.railroad.railroadclient.model.Direction
 import de.ba.railroad.railroadclient.model.Locomotive
@@ -17,7 +18,7 @@ import de.ba.railroad.railroadclient.model.RailroadViewModel
 import kotlin.math.abs
 
 /**
- * Display a speed setter for the locomotive.
+ * Display a speed setter for the locomotive: Oo-oO
  * Speed is set by multiple FilterChip buttons.
  *
  * @author Steffen Greiffenberg
@@ -26,7 +27,7 @@ import kotlin.math.abs
 @OptIn(ExperimentalMaterial3Api::class)
 fun SpeedChips(
     locomotive: Locomotive,
-    railroadViewModel: RailroadViewModel
+    onLocomotiveChange: (Locomotive) -> Unit
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(text = "Speed: ")
@@ -39,7 +40,7 @@ fun SpeedChips(
             FilterChip(
                 onClick = {
                     updateLocomotiveSpeed(locomotive, speedStep)
-                    railroadViewModel.send(locomotive)
+                    onLocomotiveChange(locomotive)
                 },
                 label = { Text("") },
                 selected = isSelectedSpeed(locomotive.speed, locomotive.direction, speedStep, step),
@@ -78,4 +79,21 @@ private fun isSelectedSpeed(speed: Int, direction: Direction, speedStep: Int, st
     return speed <= abs(speedStep) && speed > abs(speedStep) - step &&
             ((direction == Direction.DIRECTION_BACKWARD && speedStep < 0) ||
                     (direction == Direction.DIRECTION_FORWARD && speedStep >= 0))
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun SpeedChipsPreview() {
+    SpeedChips(
+        Locomotive(
+            name = "Rapunzel",
+            isSmoking = true,
+            isHeadLight = false,
+            isHornSound = false,
+            speed = 10,
+            direction = Direction.DIRECTION_FORWARD,
+            id = "0815"
+        )
+    ) { /* do nothing on locomotive change */ }
 }

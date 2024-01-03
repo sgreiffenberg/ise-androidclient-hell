@@ -25,15 +25,19 @@ fun MainScreen(modifier: Modifier = Modifier) {
     when (railroadUiState) {
         is RailroadUiState.Closed -> LoadingScreen(modifier = modifier.fillMaxSize())
         is RailroadUiState.Loading -> LoadingScreen(modifier = modifier.fillMaxSize())
-        is RailroadUiState.Success -> RailRoadScreen(modifier = modifier.fillMaxWidth())
+        is RailroadUiState.Success -> RailRoadScreen(
+            modifier = modifier.fillMaxWidth(),
+            railroadUiState = railroadUiState)
         is RailroadUiState.Error -> ErrorScreen(modifier = modifier.fillMaxSize())
     }
 }
 
 @Composable
-fun RailRoadScreen(modifier: Modifier = Modifier) {
+fun RailRoadScreen(modifier: Modifier = Modifier, railroadUiState: RailroadUiState.Success) {
     Column() {
-        LocomotiveTabScreen(modifier = modifier)
+        LocomotiveTabScreen(
+            modifier = modifier,
+            railroadUiState = railroadUiState)
     }
 }
 

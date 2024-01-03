@@ -38,15 +38,6 @@ class RailroadViewModel : ViewModel() {
     /** The mutable State that stores the status of the most recent server request */
     var railroadUiState = MutableStateFlow<RailroadUiState>(RailroadUiState.Closed)
 
-    private val defaultServer = Server(
-        name = "Dampflok",
-        url = "ws://127.0.0.1/",
-        videoURL = "http://127.0.0.1/"
-    )
-
-    /** currently selected server in the LocomotiveTabScreen */
-    // var selectedServer = MutableStateFlow(defaultServer)
-
     init {
         railroadUiState.value = RailroadUiState.Loading
         viewModelScope.launch {
