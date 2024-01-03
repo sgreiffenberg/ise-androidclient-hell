@@ -28,7 +28,7 @@ import de.ba.railroad.railroadclient.ui.screens.LocomotiveScreen
  * @author Steffen Greiffenberg
  */
 @Composable
-fun LocomotiveTabScreen() {
+fun LocomotiveTabScreen(modifier:Modifier = Modifier) {
 
     val viewModel: RailroadViewModel = viewModel()
     val railroadUiState = viewModel.railroadUiState.collectAsStateWithLifecycle().value
@@ -40,7 +40,7 @@ fun LocomotiveTabScreen() {
     }
     val servers = railroadUiState.servers
 
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = modifier) {
 
         var selectedTabIndex = servers.indexOf(server)
 

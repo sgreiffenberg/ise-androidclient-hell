@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -34,7 +33,7 @@ fun MainScreen(modifier: Modifier = Modifier) {
 @Composable
 fun RailRoadScreen(modifier: Modifier = Modifier) {
     Column() {
-        LocomotiveTabScreen()
+        LocomotiveTabScreen(modifier = modifier)
     }
 }
 
